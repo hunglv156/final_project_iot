@@ -1,0 +1,167 @@
+================================================================================
+HƯỚNG DẪN CÀI ĐẶT - RASPBERRY PI 4
+Phiên bản: TensorFlow/Keras + OpenCV
+================================================================================
+
+THAY ĐỔI MỚI:
+--------------
+✅ Dùng TensorFlow/Keras thay vì TFLite
+✅ Model cần: eye_model_best.h5 (thay vì .tflite)
+✅ Dễ cài đặt hơn, ổn định hơn
+
+
+CÀI ĐẶT NHANH (5-10 phút):
+---------------------------
+
+1. Chạy script cài đặt tự động:
+   
+   chmod +x install_rpi.sh
+   ./install_rpi.sh
+
+
+2. Copy model Keras vào thư mục models/:
+   
+   # Từ máy training
+   scp models/eye_model_best.h5 pi@raspberrypi:~/final_project_iot-main/models/
+   
+   # Hoặc nếu có .keras
+   scp models/eye_model_best.keras pi@raspberrypi:~/final_project_iot-main/models/
+
+
+3. Kiểm tra cài đặt:
+   
+   python3 test_installation.py
+
+
+4. Chạy hệ thống:
+   
+   python3 raspberry_integrated_system_opencv.py
+
+
+================================================================================
+
+
+CÁC PACKAGES SẼ ĐƯỢC CÀI:
+--------------------------
+✓ TensorFlow (~200MB)  - Keras model inference
+✓ OpenCV               - Face + Eye detection
+✓ NumPy                - Numerical operations
+✓ RPi.GPIO             - GPIO control
+✓ Pillow               - Image processing
+
+
+MODEL FILES CẦN THIẾT:
+----------------------
+✓ opencv_face_detector.pbtxt           (tự động tải)
+✓ opencv_face_detector_uint8.pb        (tự động tải)
+✓ haarcascade_eye.xml                  (tự động tải)
+⚠️ eye_model_best.h5 (hoặc .keras)     (bạn cần copy)
+
+
+================================================================================
+
+
+LƯU Ý QUAN TRỌNG:
+-----------------
+
+1. MODEL FORMAT:
+   - CŨ: eye_model_best.tflite (TFLite)  ❌
+   - MỚI: eye_model_best.h5 (Keras)      ✅
+   
+   Code tự động tìm: .h5 → .keras → .tflite (fallback)
+
+
+2. TENSORFLOW:
+   - Full version: ~200MB (có GPU support)
+   - CPU-only: ~100MB (nhẹ hơn)
+   
+   Chọn tensorflow-cpu nếu muốn nhẹ:
+   pip install tensorflow-cpu
+
+
+3. VIRTUAL ENVIRONMENT:
+   - Khuyến nghị dùng venv
+   - Cài đặt TensorFlow trong venv
+   - Không cần thoát venv như trước
+
+
+================================================================================
+
+
+KIỂM TRA NHANH:
+---------------
+
+# Test TensorFlow
+python3 -c "import tensorflow as tf; print(f'TensorFlow {tf.__version__}')"
+
+# Test Keras
+python3 -c "from tensorflow import keras; print('Keras OK')"
+
+# Test OpenCV
+python3 -c "import cv2; print(f'OpenCV {cv2.__version__}')"
+
+# Test đầy đủ
+python3 test_installation.py
+
+
+================================================================================
+
+
+TROUBLESHOOTING:
+----------------
+
+1. Lỗi: tensorflow không cài được
+   → Giải pháp: pip install tensorflow-cpu
+
+2. Lỗi: Model không tìm thấy
+   → Kiểm tra: ls -lh models/eye_model_best.*
+   → Copy: scp models/eye_model_best.h5 pi@raspberrypi:~/...
+
+3. Lỗi: ImportError tensorflow
+   → Cài lại: pip install tensorflow
+
+4. Performance thấp
+   → Giảm resolution camera trong code (line ~609)
+
+
+================================================================================
+
+
+SO SÁNH TFLITE vs TENSORFLOW:
+------------------------------
+
+                    TFLite          TensorFlow/Keras
+Package size:       ~10MB           ~200MB
+Cài đặt:            Khó ❌          Dễ ✅
+Model format:       .tflite         .h5, .keras
+Performance:        Nhanh           Vừa phải
+Inference time:     ~5-10ms         ~10-20ms
+Độ chính xác:       Giống nhau      Giống nhau
+
+Kết luận: TensorFlow dễ dùng hơn, đánh đổi là nặng hơn
+
+
+================================================================================
+
+
+ĐỌC THÊM:
+----------
+- README_RASPBERRY_PI.md  : Hướng dẫn đầy đủ
+- README.md               : Tổng quan project
+
+
+================================================================================
+
+
+SUMMARY:
+--------
+
+CŨ:  TFLite → Khó cài, nhiều lỗi
+MỚI: TensorFlow/Keras → Dễ cài, ổn định
+
+CHẠY NGAY:
+  ./install_rpi.sh
+  python3 test_installation.py
+  python3 raspberry_integrated_system_opencv.py
+
+================================================================================

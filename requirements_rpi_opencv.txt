@@ -1,16 +1,18 @@
 # ============================================================
-# REQUIREMENTS RASPBERRY PI 4 - OpenCV Version (Không cần MediaPipe)
+# REQUIREMENTS RASPBERRY PI 4 - OpenCV + TensorFlow Version
 # ============================================================
 # Cài đặt trên Raspberry Pi:
 #   pip3 install -r requirements_rpi_opencv.txt
 #
-# Phiên bản này thay thế MediaPipe bằng OpenCV's DNN Face Detection
+# Phiên bản này:
+#   - Thay MediaPipe → OpenCV (face detection)
+#   - Dùng TensorFlow/Keras (eye state classification)
 # ============================================================
 
-# LƯU Ý: tflite-runtime đã DEPRECATED từ TensorFlow 2.16+
-# Giải pháp: Dùng tensorflow (hoặc cài từ system package)
-# Nếu muốn nhẹ: sudo apt install python3-tflite-runtime
-# Nếu không có: dùng tensorflow (nặng hơn nhưng vẫn chạy được)
+# TensorFlow (cho Keras model inference)
+# Chọn 1 trong 2:
+tensorflow>=2.13.0        # Full version (~200MB, support GPU nếu có)
+# tensorflow-cpu>=2.13.0  # CPU-only (~100MB, nhẹ hơn - uncomment nếu dùng)
 
 # Computer Vision với OpenCV (bao gồm DNN module cho face detection)
 opencv-contrib-python>=4.8.0

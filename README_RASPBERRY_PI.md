@@ -1,24 +1,16 @@
 # Hướng Dẫn Nhanh - Raspberry Pi 4
 
-## ⚠️ Lưu Ý Quan Trọng - TFLite Runtime
+## ⚠️ Lưu Ý Quan Trọng
 
-**Package `tflite-runtime` đã DEPRECATED từ TensorFlow 2.16+**
+**Phiên bản mới sử dụng TensorFlow/Keras thay vì TFLite**
 
-Khi chạy `pip install tflite-runtime` bạn sẽ gặp lỗi:
-```
-ERROR: No matching distribution found for tflite-runtime
-```
+- **Eye classifier:** Keras model (`.h5` hoặc `.keras`) thay vì TFLite (`.tflite`)
+- **Lý do:** TensorFlow đầy đủ dễ cài đặt hơn, hỗ trợ tốt hơn
+- **Trade-off:** Nặng hơn (~200MB vs ~10MB) nhưng dễ dùng hơn
 
-**Giải pháp (script `install_rpi.sh` tự động xử lý):**
-1. **Cách 1 (Khuyến nghị):** Cài từ system package
-   ```bash
-   sudo apt install python3-tflite-runtime
-   ```
-2. **Cách 2:** Dùng `tensorflow` (nặng hơn)
-   ```bash
-   pip install tensorflow
-   ```
-3. Code tự động fallback: `tflite_runtime` → `tensorflow.lite`
+**Model cần thiết:**
+- `models/eye_model_best.h5` (hoặc `.keras`)
+- Nếu chỉ có `.tflite`, cần convert về `.h5` (xem hướng dẫn bên dưới)
 
 ---
 
@@ -76,7 +68,25 @@ Phải có:
 - ✅ `opencv_face_detector.pbtxt` (tự động tải)
 - ✅ `opencv_face_detector_uint8.pb` (tự động tải)
 - ✅ `haarcascade_eye.xml` (tự động tải)
-- ⚠️ `eye_model_best.tflite` (bạn cần cung cấp)
+- ⚠️ `eye_model_best.h5` hoặc `.keras` (bạn cần cung cấp)
+
+## Convert Model (Nếu Chỉ Có .tflite)
+
+Nếu bạn chỉ có file `.tflite`, cần convert về `.h5`:
+
+**Cách 1: Dùng model gốc (khuyến nghị)**
+```bash
+# Copy file .h5 từ máy training
+scp models/eye_model_best.h5 pi@raspberrypi:~/final_project_iot-main/models/
+```
+
+**Cách 2: Convert từ .tflite (phức tạp, không khuyến nghị)**
+```python
+# Lưu ý: TFLite → Keras khó, nên dùng model gốc
+# Tham khảo: https://www.tensorflow.org/lite/guide/ops_compatibility
+```
+
+**Khuyến nghị:** Luôn giữ file `.h5` gốc từ lúc training!
 
 ## Kiểm Tra Camera
 
@@ -90,10 +100,12 @@ v4l2-ctl --list-devices
 
 ## Troubleshooting
 
-### Lỗi: `ImportError: cannot import name 'tflite_runtime'`
+### Lỗi: `ImportError: cannot import name 'tensorflow'`
 
 ```bash
-pip3 install tflite-runtime
+pip3 install tensorflow
+# Hoặc phiên bản nhẹ hơn
+pip3 install tensorflow-cpu
 ```
 
 ### Lỗi: `cv2.error: opencv_face_detector.pbtxt not found`

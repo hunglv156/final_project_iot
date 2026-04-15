@@ -45,15 +45,19 @@ def main():
     packages_ok &= test_import("numpy", "numpy")
     packages_ok &= test_import("RPi.GPIO", "RPi.GPIO")
     
-    # Test TFLite
-    tflite_ok = False
-    if test_import("tflite_runtime.interpreter", "tflite-runtime"):
-        tflite_ok = True
-    elif test_import("tensorflow.lite", "tensorflow (fallback)"):
-        print("  ⚠️  Đang dùng TensorFlow thay vì tflite-runtime (nặng hơn)")
-        tflite_ok = True
+    # Test TensorFlow/Keras
+    print("\n  Kiểm tra TensorFlow/Keras:")
+    tf_ok = False
+    if test_import("tensorflow", "tensorflow"):
+        tf_ok = True
+        # Test Keras
+        if test_import("tensorflow.keras", "tensorflow.keras"):
+            print("  ✅ TensorFlow + Keras")
+        else:
+            print("  ⚠️ TensorFlow OK nhưng Keras không có")
     else:
         packages_ok = False
+        print("  ❌ TensorFlow chưa cài - chạy: pip install tensorflow")
     
     # Test OpenCV modules
     print("\n[2/3] Kiểm tra OpenCV modules:")
@@ -91,7 +95,18 @@ def main():
     models_ok &= test_file("models/opencv_face_detector.pbtxt")
     models_ok &= test_file("models/opencv_face_detector_uint8.pb")
     models_ok &= test_file("models/haarcascade_eye.xml")
-    models_ok &= test_file("models/eye_model_best.tflite")
+    
+    # Check eye classifier model (support multiple formats)
+    eye_model_found = False
+    for ext in ['.h5', '.keras', '.tflite']:
+        model_path = f"models/eye_model_best{ext}"
+        if test_file(model_path):
+            eye_model_found = True
+            break
+    
+    if not eye_model_found:
+        print("❌ models/eye_model_best.h5 (hoặc .keras, .tflite) (không tồn tại)")
+        models_ok = False
     
     # Test camera (optional)
     print("\n[BONUS] Kiểm tra camera:")
@@ -135,8 +150,9 @@ def main():
             if not Path("models/opencv_face_detector.pbtxt").exists():
                 print("   - Chạy ./install_rpi.sh để tải OpenCV models")
             
-            if not Path("models/eye_model_best.tflite").exists():
-                print("   - Copy eye_model_best.tflite vào thư mục models/")
+            if not eye_model_found:
+                print("   - Copy eye_model_best.h5 (hoặc .keras) vào thư mục models/")
+                print("     Hoặc convert từ .tflite nếu chỉ có file đó")
     
     print("=" * 60)
 

@@ -64,28 +64,20 @@ echo ""
 echo "[4/6] Cài đặt numpy..."
 pip3 install "numpy>=1.23.0,<2.0.0"
 
-# Cài đặt TFLite Runtime
+# Cài đặt TensorFlow
 echo ""
-echo "[5/6] Cài đặt TFLite Runtime..."
-echo "LƯU Ý: tflite-runtime package đã DEPRECATED từ TF 2.16+"
-echo "Thử cài từ system package hoặc dùng tensorflow-lite..."
+echo "[5/6] Cài đặt TensorFlow..."
+echo "Đang cài TensorFlow cho Keras model inference..."
 
-# Thử cài python3-tflite-runtime từ apt (nếu có)
-if sudo apt-get install -y python3-tflite-runtime 2>/dev/null; then
-    echo "✓ Đã cài python3-tflite-runtime từ apt"
-else
-    echo "⚠ Không tìm thấy python3-tflite-runtime trong apt"
-    echo "Sẽ cài tensorflow (nặng hơn nhưng vẫn chạy được)"
-    
-    # Fallback: cài tensorflow (có tensorflow.lite module)
-    pip3 install --no-cache-dir tensorflow 2>/dev/null || {
-        echo "⚠ Không cài được tensorflow, thử tensorflow-cpu..."
-        pip3 install --no-cache-dir tensorflow-cpu 2>/dev/null || {
-            echo "❌ CẢNH BÁO: Không cài được TFLite!"
-            echo "Code sẽ tự động fallback sang tensorflow.lite nếu có"
-        }
+# Cài tensorflow
+pip3 install --no-cache-dir tensorflow 2>/dev/null || {
+    echo "⚠ Không cài được tensorflow, thử tensorflow-cpu..."
+    pip3 install --no-cache-dir tensorflow-cpu 2>/dev/null || {
+        echo "❌ CẢNH BÁO: Không cài được TensorFlow!"
+        echo "Vui lòng cài thủ công: pip3 install tensorflow"
+        exit 1
     }
-fi
+}
 
 # Cài đặt các packages còn lại
 echo ""
@@ -127,7 +119,7 @@ echo "✓ CÀI ĐẶT THÀNH CÔNG!"
 echo "============================================================"
 echo ""
 echo "Các packages đã cài:"
-echo "  ✓ TFLite (từ apt hoặc tensorflow)"
+echo "  ✓ TensorFlow (Keras model inference)"
 echo "  ✓ OpenCV (thay cho MediaPipe)"
 echo "  ✓ RPi.GPIO"
 echo "  ✓ NumPy"
@@ -142,7 +134,8 @@ echo "Kiểm tra cài đặt:"
 echo "  python3 test_installation.py"
 echo ""
 echo "Tiếp theo:"
-echo "  1. Copy model eye_model_best.tflite vào thư mục models/"
+echo "  1. Copy model eye_model_best.h5 (hoặc .keras) vào thư mục models/"
+echo "     Hoặc convert từ .tflite nếu chỉ có file đó"
 echo "  2. Chạy: python3 raspberry_integrated_system_opencv.py"
 echo ""
 echo "============================================================"

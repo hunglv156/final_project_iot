@@ -40,11 +40,8 @@ from collections import deque
 
 import cv2
 import numpy as np
-
-try:
-    import tflite_runtime.interpreter as tflite
-except ImportError:
-    import tensorflow.lite as tflite
+import tensorflow as tf
+from tensorflow import keras
 
 # ============================================================
 # CẤU HÌNH CHUNG
@@ -69,7 +66,10 @@ DROWSY_THRESHOLD = 25  # Số frame mắt nhắm liên tục để cảnh báo (
 FACE_MODEL_PROTO = "models/opencv_face_detector.pbtxt"
 FACE_MODEL_WEIGHTS = "models/opencv_face_detector_uint8.pb"
 EYE_CASCADE_PATH = "models/haarcascade_eye.xml"
-EYE_CLASSIFIER_MODEL = "models/eye_model_best.tflite"
+
+# Eye Classifier Model (TensorFlow/Keras)
+# Tự động tìm: .h5, .keras, hoặc .tflite (fallback)
+EYE_CLASSIFIER_MODEL = "models/eye_model_best.h5"  # Ưu tiên Keras model
 
 # Face detection thresholds
 FACE_CONFIDENCE_THRESHOLD = 0.5
@@ -318,33 +318,53 @@ class CollisionWarningSystem:
 # ============================================================
 
 class EyeStateClassifier:
-    """Phân loại trạng thái mắt bằng TFLite model."""
+    """Phân loại trạng thái mắt bằng TensorFlow/Keras model."""
     
     def __init__(self, model_path: str):
+        # Tự động tìm model với các extension khác nhau
+        model_path = self._find_model(model_path)
+        
         if not Path(model_path).exists():
             raise FileNotFoundError(f"Model không tồn tại: {model_path}")
         
-        self.interpreter = tflite.Interpreter(model_path=model_path)
-        self.interpreter.allocate_tensors()
+        # Load TensorFlow/Keras model
+        print(f"[EyeClassifier] Đang tải model: {model_path}")
+        self.model = keras.models.load_model(model_path)
+        print(f"[EyeClassifier] ✓ Model tải thành công")
         
-        self.input_details = self.interpreter.get_input_details()
-        self.output_details = self.interpreter.get_output_details()
+        # Get model info
+        input_shape = self.model.input_shape
+        output_shape = self.model.output_shape
+        print(f"[EyeClassifier] Input shape: {input_shape}")
+        print(f"[EyeClassifier] Output shape: {output_shape}")
+    
+    def _find_model(self, model_path: str) -> str:
+        """Tìm model file với các extension khác nhau."""
+        base_path = Path(model_path).with_suffix('')
         
-        print(f"[EyeClassifier] ✓ Model tải thành công: {model_path}")
+        # Thử các extension theo thứ tự ưu tiên
+        extensions = ['.h5', '.keras', '.tflite']
+        
+        for ext in extensions:
+            candidate = str(base_path) + ext
+            if Path(candidate).exists():
+                return candidate
+        
+        # Nếu không tìm thấy, trả về path gốc
+        return model_path
     
     def predict(self, eye_roi: np.ndarray) -> tuple:
         """
         Dự đoán trạng thái mắt.
         Returns: (class_id, confidence) - 0=closed, 1=open
         """
+        # Preprocess
         resized = cv2.resize(eye_roi, (IMG_SIZE, IMG_SIZE), interpolation=cv2.INTER_AREA)
         normalized = resized.astype(np.float32) / 255.0
         input_batch = np.expand_dims(normalized, axis=0)
         
-        # TFLite inference
-        self.interpreter.set_tensor(self.input_details[0]['index'], input_batch)
-        self.interpreter.invoke()
-        probs = self.interpreter.get_tensor(self.output_details[0]['index'])[0]
+        # TensorFlow inference
+        probs = self.model.predict(input_batch, verbose=0)[0]
         
         class_id = int(np.argmax(probs))
         confidence = float(probs[class_id])
@@ -644,8 +664,10 @@ class IntegratedSafetySystem:
 def main():
     """Main function."""
     # Check model files
+    print("[System] Kiểm tra model files...")
+    
+    # Check OpenCV models (required)
     required_files = [
-        EYE_CLASSIFIER_MODEL,
         FACE_MODEL_PROTO,
         FACE_MODEL_WEIGHTS,
         EYE_CASCADE_PATH,
@@ -654,10 +676,26 @@ def main():
     missing_files = [f for f in required_files if not Path(f).exists()]
     
     if missing_files:
-        print("❌ Thiếu các file models:")
+        print("❌ Thiếu các file OpenCV models:")
         for f in missing_files:
             print(f"   - {f}")
         print("\nVui lòng chạy: ./install_rpi.sh")
+        sys.exit(1)
+    
+    # Check eye classifier model (support multiple formats)
+    eye_model_found = False
+    base_path = Path(EYE_CLASSIFIER_MODEL).with_suffix('')
+    
+    for ext in ['.h5', '.keras', '.tflite']:
+        if Path(str(base_path) + ext).exists():
+            eye_model_found = True
+            print(f"✓ Tìm thấy eye classifier model: {base_path}{ext}")
+            break
+    
+    if not eye_model_found:
+        print(f"❌ Không tìm thấy eye classifier model!")
+        print(f"   Đã tìm: {base_path}.h5, {base_path}.keras, {base_path}.tflite")
+        print(f"\nVui lòng copy model vào thư mục models/")
         sys.exit(1)
     
     # Run system
