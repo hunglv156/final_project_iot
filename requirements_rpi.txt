@@ -1,0 +1,25 @@
+# ============================================================
+# REQUIREMENTS RASPBERRY PI 4
+# ============================================================
+# Cài đặt trên Raspberry Pi:
+#   pip3 install -r requirements_rpi.txt
+#
+# Lưu ý:
+#   - Dùng tflite-runtime thay cho tensorflow đầy đủ (nhẹ hơn 200x!)
+#   - RPi.GPIO đã có sẵn nếu dùng Raspberry Pi OS
+#   - Model sử dụng: eye_model_best.tflite (0.62 MB)
+# ============================================================
+
+# TFLite Runtime (nhẹ hơn 200x so với TensorFlow đầy đủ)
+# Chỉ ~10MB thay vì ~2GB của tensorflow
+tflite-runtime>=2.14.0
+
+# Computer Vision
+opencv-python>=4.8.0
+mediapipe>=0.10.0
+
+# Numerics
+numpy>=1.23.0
+
+# GPIO (thường đã cài sẵn trên Raspberry Pi OS)
+RPi.GPIO>=0.7.1
