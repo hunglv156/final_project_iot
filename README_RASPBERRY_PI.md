@@ -1,5 +1,27 @@
 # Hướng Dẫn Nhanh - Raspberry Pi 4
 
+## ⚠️ Lưu Ý Quan Trọng - TFLite Runtime
+
+**Package `tflite-runtime` đã DEPRECATED từ TensorFlow 2.16+**
+
+Khi chạy `pip install tflite-runtime` bạn sẽ gặp lỗi:
+```
+ERROR: No matching distribution found for tflite-runtime
+```
+
+**Giải pháp (script `install_rpi.sh` tự động xử lý):**
+1. **Cách 1 (Khuyến nghị):** Cài từ system package
+   ```bash
+   sudo apt install python3-tflite-runtime
+   ```
+2. **Cách 2:** Dùng `tensorflow` (nặng hơn)
+   ```bash
+   pip install tensorflow
+   ```
+3. Code tự động fallback: `tflite_runtime` → `tensorflow.lite`
+
+---
+
 ## TL;DR - Cài Đặt Nhanh
 
 ```bash

@@ -64,10 +64,28 @@ echo ""
 echo "[4/6] Cài đặt numpy..."
 pip3 install "numpy>=1.23.0,<2.0.0"
 
-# Cài đặt TFLite Runtime (nhẹ hơn 200x so với TensorFlow đầy đủ)
+# Cài đặt TFLite Runtime
 echo ""
 echo "[5/6] Cài đặt TFLite Runtime..."
-pip3 install --no-cache-dir tflite-runtime
+echo "LƯU Ý: tflite-runtime package đã DEPRECATED từ TF 2.16+"
+echo "Thử cài từ system package hoặc dùng tensorflow-lite..."
+
+# Thử cài python3-tflite-runtime từ apt (nếu có)
+if sudo apt-get install -y python3-tflite-runtime 2>/dev/null; then
+    echo "✓ Đã cài python3-tflite-runtime từ apt"
+else
+    echo "⚠ Không tìm thấy python3-tflite-runtime trong apt"
+    echo "Sẽ cài tensorflow (nặng hơn nhưng vẫn chạy được)"
+    
+    # Fallback: cài tensorflow (có tensorflow.lite module)
+    pip3 install --no-cache-dir tensorflow 2>/dev/null || {
+        echo "⚠ Không cài được tensorflow, thử tensorflow-cpu..."
+        pip3 install --no-cache-dir tensorflow-cpu 2>/dev/null || {
+            echo "❌ CẢNH BÁO: Không cài được TFLite!"
+            echo "Code sẽ tự động fallback sang tensorflow.lite nếu có"
+        }
+    }
+fi
 
 # Cài đặt các packages còn lại
 echo ""
@@ -109,7 +127,7 @@ echo "✓ CÀI ĐẶT THÀNH CÔNG!"
 echo "============================================================"
 echo ""
 echo "Các packages đã cài:"
-echo "  ✓ TFLite Runtime (thay cho TensorFlow)"
+echo "  ✓ TFLite (từ apt hoặc tensorflow)"
 echo "  ✓ OpenCV (thay cho MediaPipe)"
 echo "  ✓ RPi.GPIO"
 echo "  ✓ NumPy"
@@ -121,7 +139,7 @@ echo "  ✓ models/opencv_face_detector_uint8.pb"
 echo "  ✓ models/haarcascade_eye.xml"
 echo ""
 echo "Kiểm tra cài đặt:"
-echo "  python3 -c 'import cv2; import tflite_runtime.interpreter; print(\"✓ OK\")'"
+echo "  python3 test_installation.py"
 echo ""
 echo "Tiếp theo:"
 echo "  1. Copy model eye_model_best.tflite vào thư mục models/"
