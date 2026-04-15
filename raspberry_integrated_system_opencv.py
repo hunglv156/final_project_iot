@@ -14,16 +14,16 @@ Cách chạy:
   python3 raspberry_integrated_system_opencv.py
 
 Yêu cầu:
-  pip install opencv-contrib-python numpy tflite-runtime RPi.GPIO
+  pip install -r requirements_rpi_opencv.txt
   
 Phần cứng:
   - 4x HC-SR04 (Trước, Sau, Trái, Phải)
   - 1x Buzzer (GPIO 12)
   - 1x USB Camera DV20
-  - Raspberry Pi 4
+  - Raspberry Pi 4 (ARM64)
 
 Model files cần thiết:
-  - models/eye_model_best.tflite (model phân loại mắt)
+  - models/eye_model_best.tflite (model phân loại mắt - TFLite format)
   - models/opencv_face_detector.pbtxt (OpenCV DNN config)
   - models/opencv_face_detector_uint8.pb (OpenCV DNN weights)
   - models/haarcascade_eye.xml (Haar Cascade cho mắt)
@@ -40,8 +40,10 @@ from collections import deque
 
 import cv2
 import numpy as np
-import tensorflow as tf
-from tensorflow import keras
+try:
+    import tflite_runtime.interpreter as tflite
+except ImportError:
+    import tensorflow.lite as tflite
 
 # ============================================================
 # CẤU HÌNH CHUNG
@@ -67,9 +69,8 @@ FACE_MODEL_PROTO = "models/opencv_face_detector.pbtxt"
 FACE_MODEL_WEIGHTS = "models/opencv_face_detector_uint8.pb"
 EYE_CASCADE_PATH = "models/haarcascade_eye.xml"
 
-# Eye Classifier Model (TensorFlow/Keras)
-# Tự động tìm: .h5, .keras, hoặc .tflite (fallback)
-EYE_CLASSIFIER_MODEL = "models/eye_model_best.h5"  # Ưu tiên Keras model
+# Eye Classifier Model (TensorFlow Lite)
+EYE_CLASSIFIER_MODEL = "models/eye_model_best.tflite"
 
 # Face detection thresholds
 FACE_CONFIDENCE_THRESHOLD = 0.5
@@ -318,40 +319,26 @@ class CollisionWarningSystem:
 # ============================================================
 
 class EyeStateClassifier:
-    """Phân loại trạng thái mắt bằng TensorFlow/Keras model."""
+    """Phân loại trạng thái mắt bằng TensorFlow Lite model."""
     
     def __init__(self, model_path: str):
-        # Tự động tìm model với các extension khác nhau
-        model_path = self._find_model(model_path)
-        
         if not Path(model_path).exists():
             raise FileNotFoundError(f"Model không tồn tại: {model_path}")
         
-        # Load TensorFlow/Keras model
-        print(f"[EyeClassifier] Đang tải model: {model_path}")
-        self.model = keras.models.load_model(model_path)
+        # Load TFLite model
+        print(f"[EyeClassifier] Đang tải TFLite model: {model_path}")
+        self.interpreter = tflite.Interpreter(model_path=model_path)
+        self.interpreter.allocate_tensors()
         print(f"[EyeClassifier] ✓ Model tải thành công")
         
-        # Get model info
-        input_shape = self.model.input_shape
-        output_shape = self.model.output_shape
-        print(f"[EyeClassifier] Input shape: {input_shape}")
-        print(f"[EyeClassifier] Output shape: {output_shape}")
-    
-    def _find_model(self, model_path: str) -> str:
-        """Tìm model file với các extension khác nhau."""
-        base_path = Path(model_path).with_suffix('')
+        # Get input/output details
+        self.input_details = self.interpreter.get_input_details()
+        self.output_details = self.interpreter.get_output_details()
         
-        # Thử các extension theo thứ tự ưu tiên
-        extensions = ['.h5', '.keras', '.tflite']
-        
-        for ext in extensions:
-            candidate = str(base_path) + ext
-            if Path(candidate).exists():
-                return candidate
-        
-        # Nếu không tìm thấy, trả về path gốc
-        return model_path
+        # Get input shape
+        self.input_shape = self.input_details[0]['shape']
+        print(f"[EyeClassifier] Input shape: {self.input_shape}")
+        print(f"[EyeClassifier] Output shape: {self.output_details[0]['shape']}")
     
     def predict(self, eye_roi: np.ndarray) -> tuple:
         """
@@ -363,8 +350,10 @@ class EyeStateClassifier:
         normalized = resized.astype(np.float32) / 255.0
         input_batch = np.expand_dims(normalized, axis=0)
         
-        # TensorFlow inference
-        probs = self.model.predict(input_batch, verbose=0)[0]
+        # TFLite inference
+        self.interpreter.set_tensor(self.input_details[0]['index'], input_batch)
+        self.interpreter.invoke()
+        probs = self.interpreter.get_tensor(self.output_details[0]['index'])[0]
         
         class_id = int(np.argmax(probs))
         confidence = float(probs[class_id])
@@ -490,7 +479,7 @@ class EyeDetectorOpenCV:
 
 
 class DrowsinessDetectionSystem:
-    """Hệ thống phát hiện ngủ gật qua camera (OpenCV version)."""
+    """Hệ thống phát hiện ngủ gật qua camera (OpenCV + TFLite version)."""
     
     def __init__(self, model_path: str, camera_device: int, 
                  threshold: int, buzzer: UnifiedBuzzerController):
@@ -602,7 +591,7 @@ class IntegratedSafetySystem:
     
     def __init__(self):
         print("=" * 60)
-        print("HỆ THỐNG CẢNH BÁO TÍCH HỢP CHO XE - OpenCV Version")
+        print("HỆ THỐNG CẢNH BÁO TÍCH HỢP CHO XE - OpenCV + TFLite Version")
         print("=" * 60)
         
         # Khởi tạo buzzer controller
@@ -682,21 +671,13 @@ def main():
         print("\nVui lòng chạy: ./install_rpi.sh")
         sys.exit(1)
     
-    # Check eye classifier model (support multiple formats)
-    eye_model_found = False
-    base_path = Path(EYE_CLASSIFIER_MODEL).with_suffix('')
-    
-    for ext in ['.h5', '.keras', '.tflite']:
-        if Path(str(base_path) + ext).exists():
-            eye_model_found = True
-            print(f"✓ Tìm thấy eye classifier model: {base_path}{ext}")
-            break
-    
-    if not eye_model_found:
-        print(f"❌ Không tìm thấy eye classifier model!")
-        print(f"   Đã tìm: {base_path}.h5, {base_path}.keras, {base_path}.tflite")
-        print(f"\nVui lòng copy model vào thư mục models/")
+    # Check eye classifier model (TFLite format)
+    if not Path(EYE_CLASSIFIER_MODEL).exists():
+        print(f"❌ Không tìm thấy eye classifier model: {EYE_CLASSIFIER_MODEL}")
+        print(f"\nVui lòng copy model TFLite vào thư mục models/")
         sys.exit(1)
+    
+    print(f"✓ Tìm thấy eye classifier model: {EYE_CLASSIFIER_MODEL}")
     
     # Run system
     system = IntegratedSafetySystem()

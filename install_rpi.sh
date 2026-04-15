@@ -30,13 +30,10 @@ echo "[2/6] Cài đặt system dependencies..."
 sudo apt-get install -y \
     python3-pip \
     python3-dev \
-    libatlas-base-dev \
+    libopenblas-dev \
     libhdf5-dev \
-    libhdf5-serial-dev \
     libharfbuzz0b \
     libwebp-dev \
-    libjasper-dev \
-    libilmbase-dev \
     libopenexr-dev \
     libgstreamer1.0-dev \
     libavcodec-dev \
@@ -46,11 +43,11 @@ sudo apt-get install -y \
     libxvidcore-dev \
     libx264-dev \
     libgtk-3-dev \
-    libcanberra-gtk* \
-    libqt5gui5 \
-    libqt5webkit5 \
-    libqt5test5 \
-    libtiff5-dev \
+    libcanberra-gtk3-0 \
+    libcanberra-gtk3-module \
+    libqt5gui5t64 \
+    libqt5test5t64 \
+    libtiff-dev \
     libjpeg-dev \
     libpng-dev
 

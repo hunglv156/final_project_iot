@@ -1,23 +1,22 @@
 # ============================================================
-# REQUIREMENTS RASPBERRY PI 4 - OpenCV + TensorFlow Version
+# REQUIREMENTS RASPBERRY PI 4 - OpenCV + TensorFlow Lite Version
 # ============================================================
 # Cài đặt trên Raspberry Pi:
 #   pip3 install -r requirements_rpi_opencv.txt
 #
-# Phiên bản này:
+# Phiên bản tối ưu cho ARM64:
 #   - Thay MediaPipe → OpenCV (face detection)
-#   - Dùng TensorFlow/Keras (eye state classification)
+#   - Dùng TensorFlow Lite (eye state classification) - chỉ ~10MB
+#   - Tối ưu numpy cho ARM64
 # ============================================================
 
-# TensorFlow (cho Keras model inference)
-# Chọn 1 trong 2:
-tensorflow>=2.13.0        # Full version (~200MB, support GPU nếu có)
-# tensorflow-cpu>=2.13.0  # CPU-only (~100MB, nhẹ hơn - uncomment nếu dùng)
+# TensorFlow Lite Runtime (inference-only, rất nhẹ ~10MB)
+tflite-runtime>=2.14.0
 
 # Computer Vision với OpenCV (bao gồm DNN module cho face detection)
 opencv-contrib-python>=4.8.0
 
-# Numerics
+# Numerics - tối ưu cho ARM64
 numpy>=1.23.0,<2.0.0
 
 # GPIO (thường đã cài sẵn trên Raspberry Pi OS)
