@@ -1,0 +1,23 @@
+# ============================================================
+# REQUIREMENTS RASPBERRY PI 4 - OpenCV Version (Không cần MediaPipe)
+# ============================================================
+# Cài đặt trên Raspberry Pi:
+#   pip3 install -r requirements_rpi_opencv.txt
+#
+# Phiên bản này thay thế MediaPipe bằng OpenCV's DNN Face Detection
+# ============================================================
+
+# TFLite Runtime (nhẹ hơn 200x so với TensorFlow đầy đủ)
+tflite-runtime>=2.14.0
+
+# Computer Vision với OpenCV (bao gồm DNN module cho face detection)
+opencv-contrib-python>=4.8.0
+
+# Numerics
+numpy>=1.23.0,<2.0.0
+
+# GPIO (thường đã cài sẵn trên Raspberry Pi OS)
+RPi.GPIO>=0.7.1
+
+# Pillow cho xử lý ảnh
+Pillow>=9.5.0

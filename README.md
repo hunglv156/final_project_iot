@@ -2,6 +2,24 @@
 
 Hệ thống phát hiện tài xế ngủ gật sử dụng MobileNetV2 + MediaPipe + Raspberry Pi 4.
 
+## ⚠️ Quan Trọng - Raspberry Pi Users
+
+**Nếu bạn đang cài đặt trên Raspberry Pi 4 và gặp lỗi MediaPipe:**
+
+```
+ERROR: No matching distribution found for mediapipe
+```
+
+**👉 Đọc ngay:** [`README_RASPBERRY_PI.md`](./README_RASPBERRY_PI.md) hoặc [`QUICK_START_RPI.txt`](./QUICK_START_RPI.txt)
+
+**Giải pháp nhanh:**
+```bash
+# Sử dụng phiên bản OpenCV thay vì MediaPipe
+chmod +x install_rpi.sh
+./install_rpi.sh
+python3 raspberry_integrated_system_opencv.py
+```
+
 ## Cấu trúc dự án
 
 ```
@@ -57,10 +75,30 @@ Output: `models/eye_model.tflite` và `models/eye_model.h5`
 scp models/eye_model.tflite pi@<RASPBERRY_PI_IP>:~/drowsiness/models/
 ```
 
-### Bước 5: Chạy inference trên Raspberry Pi
+### Bước 5: Chạy trên Raspberry Pi
+
+#### Phương án A: Hệ thống tích hợp (Khuyến nghị cho Raspberry Pi 4)
 
 ```bash
-# Cài dependencies trên Raspberry Pi
+# Cài dependencies (KHÔNG cần MediaPipe)
+chmod +x install_rpi.sh
+./install_rpi.sh
+
+# Kiểm tra cài đặt
+python3 test_installation.py
+
+# Chạy hệ thống tích hợp (camera + sensors + buzzer)
+python3 raspberry_integrated_system_opencv.py
+```
+
+**Lưu ý:** Phương án này sử dụng OpenCV thay vì MediaPipe (MediaPipe không hỗ trợ ARM64).
+
+**Đọc thêm:** [`README_RASPBERRY_PI.md`](./README_RASPBERRY_PI.md)
+
+#### Phương án B: Inference server (nếu chạy trên PC/Mac)
+
+```bash
+# Cài dependencies (cần MediaPipe)
 pip install -r requirements_rpi.txt
 
 # Chạy inference server
