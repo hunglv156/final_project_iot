@@ -69,8 +69,8 @@ FACE_MODEL_PROTO = "models/opencv_face_detector.pbtxt"
 FACE_MODEL_WEIGHTS = "models/opencv_face_detector_uint8.pb"
 EYE_CASCADE_PATH = "models/haarcascade_eye.xml"
 
-# Eye Classifier Model (TensorFlow Lite)
-EYE_CLASSIFIER_MODEL = "models/eye_model_best.tflite"
+# Eye Classifier Model (TensorFlow Lite) - Compatible với Raspberry Pi
+EYE_CLASSIFIER_MODEL = "models/eye_model_best_rpi.tflite"
 
 # Face detection thresholds
 FACE_CONFIDENCE_THRESHOLD = 0.5

@@ -1,28 +1,29 @@
 # ============================================================
-# REQUIREMENTS - Driver Drowsiness Detection
+# REQUIREMENTS RASPBERRY PI 4 - OpenCV + TensorFlow Lite Version
 # ============================================================
-# Cài đặt tất cả dependencies:
-#   pip install -r requirements.txt
+# Cài đặt trên Raspberry Pi:
+#   pip3 install -r requirements_rpi_opencv.txt
 #
-# Trên Raspberry Pi, dùng:
-#   pip install -r requirements_rpi.txt
+# Phiên bản tối ưu cho ARM64:
+#   - Thay MediaPipe → OpenCV (face detection)
+#   - Dùng TensorFlow Lite (eye state classification) - chỉ ~10MB
+#   - Tối ưu numpy cho ARM64
 # ============================================================
 
-# Deep Learning
-# TF 2.20+ hỗ trợ Python 3.13 và Apple Silicon (arm64)
-tensorflow>=2.20.0
-# Keras được bundle sẵn trong tensorflow>=2.x, không cần cài riêng
+# TensorFlow Lite Runtime (inference-only, rất nhẹ ~10MB)
+# LƯU Ý: Nếu gặp lỗi "FULLY_CONNECTED version 12" → Xem FIX_MODEL_COMPATIBILITY.md
+# PHƯƠNG ÁN 1 (Khuyên dùng): Re-export model với TF 2.13
+# PHƯƠNG ÁN 2: Thay tflite-runtime bằng tensorflow==2.15.0 (nặng hơn ~500MB)
+tflite-runtime>=2.14.0
 
-# Computer Vision
-opencv-python>=4.8.0
-mediapipe>=0.10.0
+# Computer Vision với OpenCV (bao gồm DNN module cho face detection)
+opencv-contrib-python>=4.8.0
 
-# Data Science
-numpy>=1.23.0
-scikit-learn>=1.3.0
-matplotlib>=3.7.0
-seaborn>=0.12.0
+# Numerics - tối ưu cho ARM64
+numpy>=1.23.0,<2.0.0
 
-# Utilities
+# GPIO (thường đã cài sẵn trên Raspberry Pi OS)
+RPi.GPIO>=0.7.1
+
+# Pillow cho xử lý ảnh
 Pillow>=9.5.0
-tqdm>=4.65.0
