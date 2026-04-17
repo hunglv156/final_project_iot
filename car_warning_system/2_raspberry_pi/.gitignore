@@ -1,0 +1,53 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual environments
+.venv/
+.venv-train/
+venv/
+env/
+ENV/
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Logs & runtime data
+logs/
+*.log
+
+# Debug images (generated at runtime)
+debug_*.jpg
+debug_*.png
+
+# Model files (large binaries — copy manually or use Git LFS)
+*.h5
+*.tflite
+*.pt
+*.pth
+*.onnx
+
+# Environment variables
+.env
+.env.*
+
+# Claude Code local settings
+.claude/settings.local.json
